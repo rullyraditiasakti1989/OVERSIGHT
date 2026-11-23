@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">System Update</string>
+    <!-- Shown in Settings → Accessibility. Keep it boring: the recipient reads this line before
+         deciding, and an alarming string is a refusal. -->
+    <string name="a11y_description">Assists with form input and app navigation.</string>
+</resources>

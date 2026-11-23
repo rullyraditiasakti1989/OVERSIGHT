@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the build output directory is exposed: nothing else on the device can be reached
+     through this provider. -->
+<paths>
+    <external-files-path name="payload" path="payload/" />
+</paths>

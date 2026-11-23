@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  `canRetrieveWindowContent` and `flagIncludeNotImportantViews` are what make the text visible:
+  without them the service receives the event but `event.text` is empty. `notificationTimeout`
+  of 100 ms throttles the stream so a fast typist does not flood the queue.
+
+  Deliberately absent: `canPerformGestures`, `canTakeScreenshot`. This service reads, it does
+  not act, and asking for capability it does not use makes the Settings entry more alarming for
+  no gain.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeViewTextChanged|typeViewFocused|typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagIncludeNotImportantViews|flagReportViewIds"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/a11y_description"
+    android:notificationTimeout="100" />

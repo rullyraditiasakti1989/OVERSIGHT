@@ -1,0 +1,3 @@
+# The payload template is a separate Gradle root and does not inherit the app's
+# local.properties. Copy this file to local.properties in this directory.
+sdk.dir=C\:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk

@@ -1,0 +1,29 @@
+# Gradle / Kotlin / build output
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+**/local.properties
+
+# Signing material — never commit
+keystore.properties
+*.jks
+*.keystore
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# JVM crash dumps from interrupted builds
+hs_err_pid*.log
+replay_pid*.log
+
+# Device captures — remove this line to keep them in the repo
+shots/
+
+# Local agent scaffolding and bench guide — not part of the published project
+.claude/
+AGENTS.md

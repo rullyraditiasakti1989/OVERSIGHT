@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">apps.ptbtu.com</domain>
+        <domain includeSubdomains="false">cctv.wikaserangpanimbang.com</domain>
+        <domain includeSubdomains="false">cijagolive.app-intracs.co.id</domain>
+        <trust-anchors>
+            <certificates src="@raw/ptbtu" />
+            <certificates src="@raw/wikaserang" />
+            <certificates src="@raw/cijagolive" />
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

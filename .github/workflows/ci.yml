@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Generate a throwaway release keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore ci.jks -storepass ci2026 -keypass ci2026 \
+            -alias ci -keyalg RSA -keysize 2048 -validity 1 \
+            -dname "CN=OVERSIGHT CI" >/dev/null
+          printf 'storeFile=ci.jks\nstorePassword=ci2026\nkeyAlias=ci\nkeyPassword=ci2026\n' > keystore.properties
+
+      - name: Make the wrapper executable
+        run: chmod +x gradlew
+
+      - name: Test, lint and build
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug assembleRelease lintDebug
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: oversight-apks
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            app/build/test-results/testDebugUnitTest/*.xml
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore

