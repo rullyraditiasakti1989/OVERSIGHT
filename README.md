@@ -1,5 +1,7 @@
 # OVERSIGHT
 
+[![ci](https://github.com/rullyraditiasakti1989/OVERSIGHT/actions/workflows/ci.yml/badge.svg)](https://github.com/rullyraditiasakti1989/OVERSIGHT/actions/workflows/ci.yml)
+
 A personal Android console for open-source intelligence, device awareness and link-based location
 reporting. It runs entirely on the device: no server, no account system, no sync. Everything the
 app shows comes from public feeds, bundled catalogues, or values you enter in Settings.
